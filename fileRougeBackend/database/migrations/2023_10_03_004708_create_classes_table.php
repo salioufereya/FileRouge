@@ -19,7 +19,6 @@ return new class extends Migration
             $table->foreignIdFor(Niveau::class);
             $table->foreignIdFor(Filiere::class);
             $table->integer('id_annee');
-            $table->integer('effectif')->nullable(false);
             $table->timestamps();
         });
     }

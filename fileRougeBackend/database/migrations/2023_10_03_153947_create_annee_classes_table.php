@@ -15,6 +15,7 @@ return new class extends Migration
     {
         Schema::create('annee_classes', function (Blueprint $table) {
             $table->id();
+            $table->integer('effectif');
             $table->foreignIdFor(Annee::class)->constrained()->onDelete('cascade');
             $table->foreignIdFor(Classe::class)->constrained()->onDelete('cascade');
             $table->timestamps();

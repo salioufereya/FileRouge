@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\CoursClasse;
+use App\Models\Professeur;
 use App\Models\Salle;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -21,6 +22,7 @@ return new class extends Migration
             $table->string('etat')->default('enAttente');
             $table->foreignIdFor(Salle::class);
             $table->foreignIdFor(CoursClasse::class);
+            $table->foreignIdFor(Professeur::class);
             $table->timestamps();
         });
     }

@@ -9,4 +9,6 @@ class CoursClasse extends Model
 {
     protected $guarded=['id'];
     use HasFactory;
+    protected $hidden = ['created_at', 'updated_at'];
 }
+

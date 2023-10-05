@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\SemestreResource;
 use App\Models\Semestre;
 use App\Traits\HttpResp;
 use Illuminate\Http\Request;
@@ -15,7 +16,7 @@ class SemestreController extends Controller
     public function index()
     {
         $semestres = Semestre::all();
-        return $this->success(200, 'Liste des semestres', $semestres);
+        return $this->success(200, 'Liste des semestres', SemestreResource::collection($semestres));
     }
 
     /**

@@ -16,13 +16,12 @@ trait HttpResp
     }
 
 
-    protected function error($code = 500, $message = null, $data = [], $links = [])
+    protected function error($code = 500, $message = null, $data = [])
     {
         return response()->json([
             'code' => $code,
             'message' => $message,
-            'data' => $data,
-            'links' => $links
+            'data' => $data
 
         ]);
     }

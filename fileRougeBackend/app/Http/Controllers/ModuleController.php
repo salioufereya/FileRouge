@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\ModuleResource;
 use App\Models\Module;
 use App\Traits\HttpResp;
 use Illuminate\Http\Request;
@@ -15,7 +16,7 @@ class ModuleController extends Controller
     public function index()
     {
         $modules = Module::all();
-        return $this->success(200, 'Liste des modules', $modules);
+        return $this->success(200, 'Liste des modules', ModuleResource::collection($modules));
     }
 
     /**
