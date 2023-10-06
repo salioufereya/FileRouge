@@ -44,7 +44,8 @@ class CoursController extends Controller
             'semestres' => $semestres,
             'modules' => $modules,
             'professeurs' => $profs,
-            'classes' =>  ClasseResource::collection($classe)
+            'classes' =>  ClasseResource::collection($classe),
+            'cours' => CoursResource::collection(Cours::all())
         ];
         return $this->success(200, 'Liste', $data);
     }
@@ -55,7 +56,7 @@ class CoursController extends Controller
     {
         try {
             $cours = Cours::create($request->all());
-            return $this->success(200, "Successfully", $cours);
+            return $this->success(200, "Successfully",   new CoursResource($cours));
         } catch (QueryException $e) {
             if ($e->errorInfo[1] === 1062) {
                 return $this->error(500, "Ce cours est déjà programmé.");

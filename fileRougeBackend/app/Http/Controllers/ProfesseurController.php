@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Professeur;
+use App\Models\Cours;
 use App\Traits\HttpResp;
+use App\Models\Professeur;
 use Illuminate\Http\Request;
+use App\Http\Resources\CoursResource;
+use App\Http\Resources\SessionResource;
+use App\Models\Session;
 
 class ProfesseurController extends Controller
 {
@@ -26,6 +30,7 @@ class ProfesseurController extends Controller
     {
         //
     }
+
 
     /**
      * Display the specified resource.
@@ -49,5 +54,16 @@ class ProfesseurController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function  getCoursByProf($prof)
+    {
+        $cours = Cours::where('professeur_id', $prof)->get();
+        return $this->success(200, "Les cours", CoursResource::collection($cours));
+    }
+    public function getSessionByProf($prof)
+    {
+        $sessions = Session::where('professeur_id', $prof)->get();
+        return $this->success(200, "Listes des sessions", SessionResource::collection($sessions));
     }
 }

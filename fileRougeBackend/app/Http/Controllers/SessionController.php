@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use PhpParser\Node\Stmt\TryCatch;
 use App\Http\Requests\SessionRequest;
 use App\Http\Resources\SessionResource;
+use App\Models\CoursClasseSession;
 use Error;
 
 class SessionController extends Controller
@@ -71,6 +72,7 @@ class SessionController extends Controller
             if ($sessionsOccupees->isNotEmpty()) {
                 return $this->error(500, "Le professeur est déjà occupé pendant cette période.");
             }
+
             $sessionsSalleOccupees = Session::where('salle_id', $salleId)
                 ->where(function ($query) use ($heureDebut, $heureFin, $date) {
                     $query->where(function ($q) use ($heureDebut, $heureFin) {
@@ -82,32 +84,37 @@ class SessionController extends Controller
             if ($sessionsSalleOccupees->isNotEmpty()) {
                 return $this->error(500, "La salle est déjà réservée pendant cette période.");
             }
-            foreach ($classeIds as $value) {
-                $classeOccupees = Session::where('cours_classe', $value)
-                    ->where(function ($query) use ($heureDebut, $heureFin, $date) {
-                        $query->where(function ($q) use ($heureDebut, $heureFin) {
-                            $q->where('heure_debut', '<', $heureFin)
-                                ->where('heure_fin', '>', $heureDebut);
-                        })->orWhere('date', $date);
-                    })
-                    ->get();
-                if ($classeOccupees->isNotEmpty()) {
-                    return $this->error(500, "La classe est en cours pour  cette intervalle d'heure.");
-                }
+
+
+            $classeOccupees = Session::where('salle_id', $salleId)
+                ->where(function ($query) use ($heureDebut, $heureFin, $date) {
+                    $query->where(function ($q) use ($heureDebut, $heureFin) {
+                        $q->where('heure_debut', '<', $heureFin)
+                            ->where('heure_fin', '>', $heureDebut);
+                    })->orWhere('date', $date);
+                })
+                ->get();
+
+            if ($classeOccupees->isNotEmpty()) {
+                return $this->error(500, "La classe est en cours pour  cette intervalle d'heure.");
             }
 
-            foreach ($classeIds as $classId) {
-                Session::create([
-                    'date' => $date,
-                    'cours_classe_id' => $classId,
-                    'salle_id' => $salleId,
-                    'etat' => $request->etat,
-                    'heure_debut' => $heureDebut,
-                    'heure_fin' => $heureFin,
-                    'professeur_id' => $professeurId,
-                ]);
-            }
-            return $this->success(200, 'session ajoutée avec success');
+            $session = Session::create([
+                'date' => $date,
+                'salle_id' => $salleId,
+                'etat' => $request->etat,
+                'heure_debut' => $heureDebut,
+                'heure_fin' => $heureFin,
+                'professeur_id' => $professeurId,
+                'cours_classe_ids' => implode(',', $classeIds)
+            ]);
+            // foreach ($classeIds as $classId) {
+            //     CoursClasseSession::create([
+            //         'cours_classe_id' => $classId,
+            //         'session_id' => $session->id,
+            //     ]);
+            // }
+            return $this->success(200, 'session ajoutée avec success', $session);
         } catch (Exception $th) {
             throw new Error($th);
         }
