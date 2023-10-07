@@ -7,6 +7,7 @@ use App\Http\Controllers\ProfesseurController;
 use App\Http\Controllers\SemestreController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\UserController;
+use App\Models\Professeur;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -25,6 +26,8 @@ use Illuminate\Support\Facades\Route;
 //     return $request->user();
 // });
 Route::get('cours/getAllNeed', [CoursController::class, 'getAllNeed']);
+Route::get('sessions/{prof}/sessions', [SessionController::class, 'getSessionsByProf']);
+Route::get('professeurs/{prof}/session/{id}/demarrer', [ProfesseurController::class, 'demarrerSessionByProf']);
 Route::get('professeurs/{prof}/cours', [ProfesseurController::class, 'getCoursByProf']);
 Route::get('professeurs/{prof}/sessions', [ProfesseurController::class, 'getSessionByProf']);
 Route::apiResource('cours', CoursController::class);

@@ -119,6 +119,11 @@ class SessionController extends Controller
             throw new Error($th);
         }
     }
+
+    public function getSessionsByProf()
+    {
+        
+    }
     /**
      * Display the specified resource.
      */

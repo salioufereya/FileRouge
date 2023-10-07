@@ -66,4 +66,12 @@ class ProfesseurController extends Controller
         $sessions = Session::where('professeur_id', $prof)->get();
         return $this->success(200, "Listes des sessions", SessionResource::collection($sessions));
     }
+
+    public function demarrerSessionByProf($prof, $id)
+    {
+        $sessions = Session::where(['professeur_id' => $prof, 'id' => $id])->first();
+        $sessions->etat = 'EnCours';
+        $sessions->save();
+        return $this->success(200, "",new  SessionResource($sessions));
+    }
 }
