@@ -2,8 +2,10 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Cours;
 use App\Models\Classe;
 use App\Models\CoursClasse;
+use App\Models\Module;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -27,9 +29,14 @@ class SessionResource extends JsonResource
             $cl = Classe::select('id', 'libelle')->find($value);
             $classes[] = $cl;
         }
+
+
+
+        $id = Cours::find($this->cours_id)->module_id;
         return [
             'id' => $this->id,
             'date' => $this->date,
+            'cours' => Module::find($id)->libelle,
             'heure_debut' => $this->heure_debut,
             'heure_fin' => $this->heure_fin,
             'etat' => $this->etat,

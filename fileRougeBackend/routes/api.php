@@ -26,6 +26,7 @@ use Illuminate\Support\Facades\Route;
 //     return $request->user();
 // });
 Route::get('cours/getAllNeed', [CoursController::class, 'getAllNeed']);
+Route::post('sessions/search', [SessionController::class, 'search']);
 Route::get('sessions/{prof}/sessions', [SessionController::class, 'getSessionsByProf']);
 Route::get('professeurs/{prof}/session/{id}/demarrer', [ProfesseurController::class, 'demarrerSessionByProf']);
 Route::get('professeurs/{prof}/cours', [ProfesseurController::class, 'getCoursByProf']);

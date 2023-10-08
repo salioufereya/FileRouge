@@ -15,6 +15,7 @@ use PhpParser\Node\Stmt\TryCatch;
 use App\Http\Requests\SessionRequest;
 use App\Http\Resources\SessionResource;
 use App\Models\CoursClasseSession;
+use App\Models\Professeur;
 use Error;
 
 class SessionController extends Controller
@@ -33,6 +34,37 @@ class SessionController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+
+    public function search(Request $request)
+    {
+
+        $professeurId = $request->professeur;
+        $heureDebut = $request->heure_debut;
+        $heureFin = $request->heure_fin;
+        $date = $request->date;
+        $professeur = Professeur::where('nom_complet', $professeurId)->first();
+        $sessionsOccupees = Session::where('professeur_id', $professeur->id)
+            ->where(function ($query) use ($heureDebut, $heureFin, $date) {
+                $query->where(function ($q) use ($heureDebut, $heureFin) {
+                    $q->where('heure_debut', '<', $heureFin)
+                        ->where('heure_fin', '>', $heureDebut);
+                })->orWhere('date', $date);
+            })
+            ->get();
+
+        if ($sessionsOccupees->isNotEmpty()) {
+            return $this->error(500, "Le professeur est déjà occupé pendant cette période.");
+        }
+        else{
+            return $this->error(200, "success.");
+        }
+    }
+
+
+
+
+
+
     public function store(SessionRequest $request)
     {
         try {
@@ -122,7 +154,6 @@ class SessionController extends Controller
 
     public function getSessionsByProf()
     {
-        
     }
     /**
      * Display the specified resource.

@@ -17,6 +17,8 @@ use App\Http\Resources\ModuleResource;
 use Illuminate\Database\QueryException;
 use App\Http\Resources\SemestreResource;
 use App\Http\Resources\ProfesseurResource;
+use App\Http\Resources\SalleResource;
+use App\Models\Salle;
 
 class CoursController extends Controller
 {
@@ -36,6 +38,7 @@ class CoursController extends Controller
         $modules = ModuleResource::collection(Module::all());
         $profs = ProfesseurResource::collection(Professeur::all());
         $classes = AnneeClasse::where('annee_id', 1)->get();
+        $salles =  SalleResource::collection(Salle::all());
         $classe = [];
         foreach ($classes as $key) {
             $classe[] = (Classe::find($key->classe_id));
@@ -45,7 +48,8 @@ class CoursController extends Controller
             'modules' => $modules,
             'professeurs' => $profs,
             'classes' =>  ClasseResource::collection($classe),
-            'cours' => CoursResource::collection(Cours::all())
+            'cours' => CoursResource::collection(Cours::all()),
+            'salles' => $salles
         ];
         return $this->success(200, 'Liste', $data);
     }
