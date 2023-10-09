@@ -20,10 +20,10 @@ class Cours extends Model
         static::created(function ($cours) {
             $request = request();
             $classeIds = $request->input('classe_ids');
-            $nbrHeures = $request->input('nbr_heures');
+            //$nbrHeures = $request->input('nbr_heures');
             if ($classeIds) {
                 foreach ($classeIds as $classeId) {
-                    $cours->classes()->attach($classeId, ['nbr_heures' => $nbrHeures]);
+                    $cours->classes()->attach($classeId);
                 }
             }
         });

@@ -37,7 +37,6 @@ class SessionController extends Controller
 
     public function search(Request $request)
     {
-
         $professeurId = $request->professeur;
         $heureDebut = $request->heure_debut;
         $heureFin = $request->heure_fin;
@@ -45,17 +44,17 @@ class SessionController extends Controller
         $professeur = Professeur::where('nom_complet', $professeurId)->first();
         $sessionsOccupees = Session::where('professeur_id', $professeur->id)
             ->where(function ($query) use ($heureDebut, $heureFin, $date) {
-                $query->where(function ($q) use ($heureDebut, $heureFin) {
+                $query->where(function ($q) use ($heureDebut, $heureFin, $date) {
                     $q->where('heure_debut', '<', $heureFin)
-                        ->where('heure_fin', '>', $heureDebut);
-                })->orWhere('date', $date);
+                        ->where('heure_fin', '>', $heureDebut)
+                        ->where('date', $date);
+                });
             })
             ->get();
 
         if ($sessionsOccupees->isNotEmpty()) {
-            return $this->error(500, "Le professeur est déjà occupé pendant cette période.");
-        }
-        else{
+            return $this->error(500, "Le professeur est déjà occupé pendant cette période pour la date donnée.");
+        } else {
             return $this->error(200, "success.");
         }
     }
@@ -65,15 +64,34 @@ class SessionController extends Controller
 
 
 
+
     public function store(SessionRequest $request)
     {
         try {
+            $professeurId = $request->professeur;
+            $professeur = Professeur::where('nom_complet', $professeurId)->first();
+            $heureDebut = strtotime($request->heure_debut);
+            $heureFin = strtotime($request->heure_fin);
+            $duree = $heureFin - $heureDebut;
+            $clasIds = $request->classe_ids;
+            $classeIds = [];
+
+            foreach ($clasIds as $key) {
+                $cl = CoursClasse::where(['cours_id' => $request->cours_id, 'annee_classe_id' => $key['id']])->get();
+                $classeIds[] = $cl[0]->id;
+                $heure = $cl[0]->nbr_heures * 3600;
+                $dure = $duree;
+                $fu = ($heure - $dure) / 3600;
+                $cl[0]->heurs_restant -= $fu;
+            }
+            $heureDebut = date('H:i', $heureDebut);
+            $heureFin = date('H:i', $heureFin);
+            $duree = $duree / 3600;
+
             $totalEleve = 0;
-            $classeIds = $request->cours_classe_id;
             if (!is_array($classeIds)) {
                 $classeIds = [$classeIds];
             }
-
             foreach ($classeIds as $classId) {
                 $idAnneeClasse = CoursClasse::find($classId)->annee_classe_id;
                 $class = AnneeClasse::find($idAnneeClasse);
@@ -87,17 +105,16 @@ class SessionController extends Controller
             }
 
 
-            $professeurId = $request->professeur_id;
-            $heureDebut = $request->heure_debut;
-            $heureFin = $request->heure_fin;
+            $professeurId = $professeur->id;
             $date = $request->date;
             $salleId = $request->salle_id;
             $sessionsOccupees = Session::where('professeur_id', $professeurId)
                 ->where(function ($query) use ($heureDebut, $heureFin, $date) {
-                    $query->where(function ($q) use ($heureDebut, $heureFin) {
+                    $query->where(function ($q) use ($heureDebut, $heureFin, $date) {
                         $q->where('heure_debut', '<', $heureFin)
-                            ->where('heure_fin', '>', $heureDebut);
-                    })->orWhere('date', $date);
+                            ->where('heure_fin', '>', $heureDebut)
+                            ->where('date', $date);
+                    });
                 })
                 ->get();
 
@@ -107,10 +124,11 @@ class SessionController extends Controller
 
             $sessionsSalleOccupees = Session::where('salle_id', $salleId)
                 ->where(function ($query) use ($heureDebut, $heureFin, $date) {
-                    $query->where(function ($q) use ($heureDebut, $heureFin) {
+                    $query->where(function ($q) use ($heureDebut, $heureFin, $date) {
                         $q->where('heure_debut', '<', $heureFin)
-                            ->where('heure_fin', '>', $heureDebut);
-                    })->orWhere('date', $date);
+                            ->where('heure_fin', '>', $heureDebut)
+                            ->where('date', $date);
+                    });
                 })
                 ->get();
             if ($sessionsSalleOccupees->isNotEmpty()) {
@@ -120,17 +138,22 @@ class SessionController extends Controller
 
             $classeOccupees = Session::where('salle_id', $salleId)
                 ->where(function ($query) use ($heureDebut, $heureFin, $date) {
-                    $query->where(function ($q) use ($heureDebut, $heureFin) {
+                    $query->where(function ($q) use ($heureDebut, $heureFin, $date) {
                         $q->where('heure_debut', '<', $heureFin)
-                            ->where('heure_fin', '>', $heureDebut);
-                    })->orWhere('date', $date);
+                            ->where('heure_fin', '>', $heureDebut)
+                            ->where('date', $date);
+                    });
                 })
                 ->get();
 
             if ($classeOccupees->isNotEmpty()) {
                 return $this->error(500, "La classe est en cours pour  cette intervalle d'heure.");
             }
-
+            if ($salleId === null) {
+                $typeCours = "enLigne";
+            } else {
+                $typeCours = "presentiel";
+            }
             $session = Session::create([
                 'date' => $date,
                 'salle_id' => $salleId,
@@ -138,14 +161,11 @@ class SessionController extends Controller
                 'heure_debut' => $heureDebut,
                 'heure_fin' => $heureFin,
                 'professeur_id' => $professeurId,
+                'duree' => $duree,
+                'cours_id' => $request->cours_id,
+                'typeCours' => $typeCours,
                 'cours_classe_ids' => implode(',', $classeIds)
             ]);
-            // foreach ($classeIds as $classId) {
-            //     CoursClasseSession::create([
-            //         'cours_classe_id' => $classId,
-            //         'session_id' => $session->id,
-            //     ]);
-            // }
             return $this->success(200, 'session ajoutée avec success', $session);
         } catch (Exception $th) {
             throw new Error($th);
