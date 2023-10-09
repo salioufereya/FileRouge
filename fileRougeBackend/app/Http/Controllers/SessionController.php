@@ -2,21 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use Error;
 use Exception;
 use Throwable;
 use App\Models\Salle;
 use App\Models\Classe;
 use App\Models\Session;
 use App\Traits\HttpResp;
+use App\Models\Professeur;
 use App\Models\AnneeClasse;
 use App\Models\CoursClasse;
 use Illuminate\Http\Request;
 use PhpParser\Node\Stmt\TryCatch;
+use App\Models\CoursClasseSession;
+use Illuminate\Support\Facades\DB;
 use App\Http\Requests\SessionRequest;
 use App\Http\Resources\SessionResource;
-use App\Models\CoursClasseSession;
-use App\Models\Professeur;
-use Error;
 
 class SessionController extends Controller
 {
@@ -59,6 +60,28 @@ class SessionController extends Controller
         }
     }
 
+    public function searchProf(Request $request)
+    {
+        $salleId = $request->salle_id;
+        $heureDebut = $request->heure_debut;
+        $heureFin = $request->heure_fin;
+        $date = $request->date;
+        $sessionsSalleOccupees = Session::where('salle_id', $salleId)
+            ->where(function ($query) use ($heureDebut, $heureFin, $date) {
+                $query->where(function ($q) use ($heureDebut, $heureFin, $date) {
+                    $q->where('heure_debut', '<', $heureFin)
+                        ->where('heure_fin', '>', $heureDebut)
+                        ->where('date', $date);
+                });
+            })
+            ->get();
+        if ($sessionsSalleOccupees->isNotEmpty()) {
+            return $this->error(500, "La salle est déjà réservée pendant cette période.");
+        } else {
+            return $this->success(200, "success.");
+        }
+    }
+
 
 
 
@@ -68,6 +91,7 @@ class SessionController extends Controller
     public function store(SessionRequest $request)
     {
         try {
+            DB::beginTransaction();
             $professeurId = $request->professeur;
             $professeur = Professeur::where('nom_complet', $professeurId)->first();
             $heureDebut = strtotime($request->heure_debut);
@@ -76,17 +100,17 @@ class SessionController extends Controller
             $clasIds = $request->classe_ids;
             $classeIds = [];
 
+
             foreach ($clasIds as $key) {
                 $cl = CoursClasse::where(['cours_id' => $request->cours_id, 'annee_classe_id' => $key['id']])->get();
                 $classeIds[] = $cl[0]->id;
-                $heure = $cl[0]->nbr_heures * 3600;
-                $dure = $duree;
-                $fu = ($heure - $dure) / 3600;
-                $cl[0]->heurs_restant -= $fu;
+                $heure = $cl[0]->heures_restant * 3600;
+                $fu = ($heure - $duree) / 3600;
+                $cl[0]->heures_restant = $fu;
+                $cl[0]->save();
             }
             $heureDebut = date('H:i', $heureDebut);
             $heureFin = date('H:i', $heureFin);
-            $duree = $duree / 3600;
 
             $totalEleve = 0;
             if (!is_array($classeIds)) {
@@ -103,8 +127,6 @@ class SessionController extends Controller
             if ($effectifSalle < $totalEleve) {
                 return $this->error(500, "Cette salle ne peut pas contenir cet effectif d'étudiants.");
             }
-
-
             $professeurId = $professeur->id;
             $date = $request->date;
             $salleId = $request->salle_id;
@@ -161,13 +183,15 @@ class SessionController extends Controller
                 'heure_debut' => $heureDebut,
                 'heure_fin' => $heureFin,
                 'professeur_id' => $professeurId,
-                'duree' => $duree,
+                'duree' =>  date('H:i', $duree),
                 'cours_id' => $request->cours_id,
                 'typeCours' => $typeCours,
                 'cours_classe_ids' => implode(',', $classeIds)
             ]);
+            DB::commit();
             return $this->success(200, 'session ajoutée avec success', $session);
         } catch (Exception $th) {
+            DB::rollback();
             throw new Error($th);
         }
     }
