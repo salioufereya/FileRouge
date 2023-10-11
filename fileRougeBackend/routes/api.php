@@ -2,11 +2,13 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CoursController;
+use App\Http\Controllers\InscriptionController;
 use App\Http\Controllers\ModuleController;
 use App\Http\Controllers\ProfesseurController;
 use App\Http\Controllers\SemestreController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\UserController;
+use App\Models\Inscription;
 use App\Models\Professeur;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +29,7 @@ use Illuminate\Support\Facades\Route;
 // });
 Route::get('cours/getAllNeed', [CoursController::class, 'getAllNeed']);
 Route::post('sessions/search', [SessionController::class, 'search']);
+Route::post('sessions/annuler', [SessionController::class, 'annuler']);
 Route::post('sessions/searchProf', [SessionController::class, 'searchProf']);
 Route::get('sessions/{prof}/sessions', [SessionController::class, 'getSessionsByProf']);
 Route::get('professeurs/{prof}/session/{id}/demarrer', [ProfesseurController::class, 'demarrerSessionByProf']);
@@ -35,6 +38,8 @@ Route::get('professeurs/{prof}/sessions', [ProfesseurController::class, 'getSess
 Route::apiResource('cours', CoursController::class);
 
 Route::apiResource('professeurs', ProfesseurController::class);
+Route::post('inscriptions/{classe}/eleves', [InscriptionController::class, 'getElevesByClasse']);
+Route::apiResource('inscriptions', InscriptionController::class);
 Route::apiResource('modules', ModuleController::class);
 Route::apiResource('semestres', SemestreController::class);
 

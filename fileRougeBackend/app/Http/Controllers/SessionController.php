@@ -189,7 +189,7 @@ class SessionController extends Controller
                 'cours_classe_ids' => implode(',', $classeIds)
             ]);
             DB::commit();
-            return $this->success(200, 'session ajoutée avec success', $session);
+            return $this->success(200, 'session ajoutée avec success',  new SessionResource($session));
         } catch (Exception $th) {
             DB::rollback();
             throw new Error($th);
@@ -221,5 +221,16 @@ class SessionController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function annuler(Request $request)
+    {
+        try {
+            $session = Session::find($request->id);
+            $session->etat = "annuler";
+            $session->save();
+        } catch (Exception $e) {
+            throw new Error($e->getMessage());
+        }
     }
 }
