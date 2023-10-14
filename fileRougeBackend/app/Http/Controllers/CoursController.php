@@ -58,6 +58,7 @@ class CoursController extends Controller
      */
     public function store(CoursRequest $request)
     {
+
         try {
             $cours = Cours::create($request->all());
             return $this->success(200, "Successfully",   new CoursResource($cours));

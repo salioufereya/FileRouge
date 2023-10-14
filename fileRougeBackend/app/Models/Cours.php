@@ -14,20 +14,19 @@ class Cours extends Model
     protected $guarded = ['id'];
     public static function boot()
     {
-
-
         parent::boot();
         static::created(function ($cours) {
             $request = request();
             $classeIds = $request->input('classe_ids');
-            //$nbrHeures = $request->input('nbr_heures');
-            if ($classeIds) {
+            $nbrHeures = $request->input('nbr_heures');
+            if ($classeIds && $nbrHeures) {
                 foreach ($classeIds as $classeId) {
-                    $cours->classes()->attach($classeId);
+                    $cours->classes()->attach($classeId, ['nbr_heures' => $nbrHeures, 'heures_restant' => $nbrHeures]);
                 }
             }
         });
     }
+
 
 
     public function classes(): BelongsToMany

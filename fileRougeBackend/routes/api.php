@@ -30,20 +30,27 @@ use Illuminate\Support\Facades\Route;
 Route::get('cours/getAllNeed', [CoursController::class, 'getAllNeed']);
 Route::post('sessions/search', [SessionController::class, 'search']);
 Route::post('sessions/annuler', [SessionController::class, 'annuler']);
+Route::post('sessions/valider', [SessionController::class, 'valider']);
+Route::post('sessions/terminer', [SessionController::class, 'terminer']);
 Route::post('sessions/searchProf', [SessionController::class, 'searchProf']);
-Route::get('sessions/{prof}/sessions', [SessionController::class, 'getSessionsByProf']);
+//Route::get('sessions/{prof}/sessions', [SessionController::class, 'getSessionsByProf']);
 Route::get('professeurs/{prof}/session/{id}/demarrer', [ProfesseurController::class, 'demarrerSessionByProf']);
-Route::get('professeurs/{prof}/cours', [ProfesseurController::class, 'getCoursByProf']);
-Route::get('professeurs/{prof}/sessions', [ProfesseurController::class, 'getSessionByProf']);
+
+Route::post('professeurs/session/demandeAnnulation', [ProfesseurController::class, 'demandeAnnulation']);
+
+Route::post('professeurs/cours', [ProfesseurController::class, 'getCoursByProf']);
+Route::post('professeurs/sessions', [ProfesseurController::class, 'getSessionByProf']);
 Route::apiResource('cours', CoursController::class);
+
+
+
+
 
 Route::apiResource('professeurs', ProfesseurController::class);
 Route::post('inscriptions/{classe}/eleves', [InscriptionController::class, 'getElevesByClasse']);
 Route::apiResource('inscriptions', InscriptionController::class);
 Route::apiResource('modules', ModuleController::class);
 Route::apiResource('semestres', SemestreController::class);
-
-
 Route::apiResource('sessions', SessionController::class);
 
 Route::post('login', [AuthController::class, 'login']);

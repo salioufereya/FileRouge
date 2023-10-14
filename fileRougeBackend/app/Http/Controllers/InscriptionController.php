@@ -119,7 +119,6 @@ class InscriptionController extends Controller
 
     public function  getElevesByClasse($classe)
     {
-
         $idAnCl = AnneeClasse::where(['classe_id' => $classe, 'annee_id' => 1])->first();
         $eleves = Inscription::where('annee_classe_id', $idAnCl->id)->get();
         return  InscriptionResource::collection($eleves);

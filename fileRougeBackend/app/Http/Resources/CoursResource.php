@@ -18,9 +18,10 @@ class CoursResource extends JsonResource
             'id' => $this->id,
             'semestre' =>  $this->semestre->libelle,
             'module' => $this->module->libelle,
+            "photo" => $this->module->photo,
             'professeur' =>   $this->professeur->nom_complet,
             'etat' => $this->etat,
-            'classes'=>  CoursClasseResource::collection($this->cours_classes),
+            'classes' =>  CoursClasseResource::collection($this->cours_classes),
         ];
     }
 }

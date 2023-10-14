@@ -8,7 +8,11 @@ use App\Models\Professeur;
 use Illuminate\Http\Request;
 use App\Http\Resources\CoursResource;
 use App\Http\Resources\SessionResource;
+use App\Mail\MailProf;
 use App\Models\Session;
+use App\Models\User;
+use Error;
+use Illuminate\Support\Facades\Mail;
 
 class ProfesseurController extends Controller
 {
@@ -28,7 +32,20 @@ class ProfesseurController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try {
+            foreach ($request->tab as $value) {
+                User::create([
+                    'nom' => $value['nom'],
+                    'prenom' => $value['prenom'],
+                    'email' => $value['email'],
+                    'role' => $value['role'],
+                    'password' => $value['password'],
+                ]);
+            }
+            return $this->success(200, "", "");
+        } catch (\Throwable $th) {
+            throw  new Error($th);
+        }
     }
 
 
@@ -56,22 +73,39 @@ class ProfesseurController extends Controller
         //
     }
 
-    public function  getCoursByProf($prof)
+    public function  getCoursByProf(Request $request)
     {
-        $cours = Cours::where('professeur_id', $prof)->get();
+        $prof = Professeur::where('email', $request->email)->first();
+        $cours = Cours::where('professeur_id', $prof->id)->get();
         return $this->success(200, "Les cours", CoursResource::collection($cours));
     }
-    public function getSessionByProf($prof)
+
+
+    public function getSessionByProf(Request $request)
     {
-        $sessions = Session::where('professeur_id', $prof)->get();
+
+        $prof = Professeur::where('email', $request->email)->first();
+        $sessions = Session::where('professeur_id', $prof->id)->get();
         return $this->success(200, "Listes des sessions", SessionResource::collection($sessions));
     }
+
+
+
 
     public function demarrerSessionByProf($prof, $id)
     {
         $sessions = Session::where(['professeur_id' => $prof, 'id' => $id])->first();
         $sessions->etat = 'EnCours';
         $sessions->save();
-        return $this->success(200, "",new  SessionResource($sessions));
+        return $this->success(200, "", new  SessionResource($sessions));
+    }
+    public function demandeAnnulation(Request $request)
+    {
+        $content = [
+            'subject' => 'This is the mail subject',
+            'body' => "This is the mail body"
+        ];
+        Mail::to('salioufereya19@gmail.com')->send(new MailProf($content));
+        return $this->success(200, "message envoyé");
     }
 }

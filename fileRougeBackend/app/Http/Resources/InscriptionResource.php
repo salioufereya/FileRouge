@@ -24,10 +24,8 @@ class InscriptionResource extends JsonResource
             'login' => $this->user->numero,
             'dateNaissance' => $this->user->dateNaissance,
             'lieuNaissance' => $this->user->lieuNaissance,
+            'password' => $this->user->password,
             'sexe' => $this->user->sexe,
-
-
-
         ];
     }
 }

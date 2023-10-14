@@ -18,6 +18,7 @@ use App\Models\CoursClasseSession;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\SessionRequest;
 use App\Http\Resources\SessionResource;
+use Carbon\Carbon;
 
 class SessionController extends Controller
 {
@@ -82,12 +83,6 @@ class SessionController extends Controller
         }
     }
 
-
-
-
-
-
-
     public function store(SessionRequest $request)
     {
         try {
@@ -101,14 +96,14 @@ class SessionController extends Controller
             $classeIds = [];
 
 
-            foreach ($clasIds as $key) {
-                $cl = CoursClasse::where(['cours_id' => $request->cours_id, 'annee_classe_id' => $key['id']])->get();
-                $classeIds[] = $cl[0]->id;
-                $heure = $cl[0]->heures_restant * 3600;
-                $fu = ($heure - $duree) / 3600;
-                $cl[0]->heures_restant = $fu;
-                $cl[0]->save();
-            }
+            // foreach ($clasIds as $key) {
+            //     $cl = CoursClasse::where(['cours_id' => $request->cours_id, 'annee_classe_id' => $key['id']])->get();
+            //     $classeIds[] = $cl[0]->id;
+            //     $heure = $cl[0]->heures_restant * 3600;
+            //     $fu = ($heure - $duree) / 3600;
+            //     $cl[0]->heures_restant = $fu;
+            //     $cl[0]->save();
+            // }
             $heureDebut = date('H:i', $heureDebut);
             $heureFin = date('H:i', $heureFin);
 
@@ -156,7 +151,6 @@ class SessionController extends Controller
             if ($sessionsSalleOccupees->isNotEmpty()) {
                 return $this->error(500, "La salle est déjà réservée pendant cette période.");
             }
-
 
             $classeOccupees = Session::where('salle_id', $salleId)
                 ->where(function ($query) use ($heureDebut, $heureFin, $date) {
@@ -229,6 +223,40 @@ class SessionController extends Controller
             $session = Session::find($request->id);
             $session->etat = "annuler";
             $session->save();
+        } catch (Exception $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function terminer(Request $request)
+    {
+       
+        try {
+            $session = Session::find($request->id);
+            $session->etat = "terminer";
+            $session->save();
+            return $this->success(200, "Session termé avec success", $session);
+        } catch (Exception $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+
+
+    public function valider(Request $request)
+    {
+        try {
+            $session = Session::find($request->id);
+            $session->etat = "valider";
+            $session->save();
+            $cl = CoursClasse::where('cours_id', $session->cours_id)->first();
+            $duree = Carbon::parse($session->duree);
+            $dureeEnHeures = $duree->hour + $duree->minute / 60 + $duree->second / 3600;
+            $heure = $cl->heures_restant;
+            $fu = $heure - $dureeEnHeures;
+            $cl->heures_restant = $fu;
+            $cl->save();
+            return $this->success(200, "Valider avec succès", $session);
         } catch (Exception $e) {
             throw new Error($e->getMessage());
         }
