@@ -45,7 +45,8 @@ Route::apiResource('cours', CoursController::class);
 
 
 
-
+Route::post('inscriptions/cours', [InscriptionController::class, 'coursByEleves']);
+Route::post('inscriptions/sessions', [InscriptionController::class, 'sessionsByEleves']);
 Route::apiResource('professeurs', ProfesseurController::class);
 Route::post('inscriptions/{classe}/eleves', [InscriptionController::class, 'getElevesByClasse']);
 Route::apiResource('inscriptions', InscriptionController::class);
